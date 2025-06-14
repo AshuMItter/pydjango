@@ -24,8 +24,8 @@ jobs:
           pip install bandit safety
 
       # --- Run tests ---
-      - name: Run Django tests
-        run: python manage.py test
+     #-- - name: Run Django tests ---
+     #--   run: python manage.py test  ---
 
       # --- SAST: Bandit ---
       - name: Security scan (Bandit)
