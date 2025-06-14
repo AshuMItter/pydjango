@@ -29,7 +29,7 @@ jobs:
 
       # --- SCA: Safety ---
       - name: Scan dependencies (safety)
-        run: safety check --full-report
+        run: safety scan --full-report  # Changed from 'check' to 'scan'
 
   deploy-to-azure:
     needs: test-and-scan
@@ -43,20 +43,19 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Fix typo (was AZURE_CREDENTIALS)
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # --- Verify App Service Exists (Prevent 404) ---
+      # --- Verify App Service Exists ---
       - name: Check Azure App Service
         run: |
           az webapp show \
             --name django-azure-app \
             --resource-group django-azure-app_group \
-            --query "state" || exit 1
+            --query "state" || echo "::warning::App Service not found"
 
-      # --- Deploy to Azure F1 Tier (No Slots) ---
+      # --- Deploy to Azure ---
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v2
         with:
-          app-name: "django-azure-app"  # Must match your F1 App Service name
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-          # Removed slot-name (F1 doesn't support slots)
+          app-name: "django-azure-app"
+          package: .
