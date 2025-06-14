@@ -1,61 +1,52 @@
-name: Django DevSecOps Pipeline (F1 Free Tier)
+name: Django Azure Deployment
 
 on:
   push:
     branches: [main]
-  pull_request: {}
+
+env:
+  AZURE_WEBAPP_NAME: 'django-azure-app'
+  AZURE_WEBAPP_PACKAGE_PATH: '.'
+  PYTHON_VERSION: '3.10'
 
 jobs:
-  test-and-scan:
-    runs-on: ubuntu-latest
-    steps:
-      # --- Checkout code ---
-      - uses: actions/checkout@v4
-
-      # --- Set up Python ---
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      # --- Install dependencies ---
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install bandit safety
-
-      # --- SAST: Bandit ---
-   #--   - name: Security scan (Bandit) ---
-   #--     run: bandit -r . --severity-level low ---
-
-      # --- SCA: Safety ---
-   #--   - name: Check dependencies (safety) ---
-   #--     run: safety scan --full-report  # Changed from 'check' to 'scan' ---
-
-  deploy-to-azure:
-    needs: test-and-scan
+  build-and-deploy:
     runs-on: ubuntu-latest
     environment: production
+    
     steps:
-      # --- Checkout code ---
-      - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      # --- Azure Login ---
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
 
-      # --- Verify App Service Exists ---
-      - name: Check Azure App Service
-        run: |
-          az webapp show \
-            --name django-azure-app \
-            --resource-group django-azure-app_group \
-            --query "state" || echo "::warning::App Service not found"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install gunicorn  # Explicitly install production server
 
-      # --- Deploy to Azure ---
-      - name: Deploy to Azure
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: "django-azure-app"
-          package: .
+    - name: Run security scans
+      run: |
+        pip install bandit safety
+        bandit -r . --severity-level high
+        safety scan --full-report
+
+    - name: Zip the application files
+      run: |
+        zip -r django-app.zip . -x '*.git*' -x '*.github*' -x '*__pycache__*'
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        package: 'django-app.zip'
+        runtime: 'PYTHON|${{ env.PYTHON_VERSION }}'
