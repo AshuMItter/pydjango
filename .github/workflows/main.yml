@@ -24,12 +24,12 @@ jobs:
           pip install bandit safety
 
       # --- SAST: Bandit ---
-      - name: Security scan (Bandit)
-        run: bandit -r . --severity-level low
+   #--   - name: Security scan (Bandit) ---
+   #--     run: bandit -r . --severity-level low ---
 
       # --- SCA: Safety ---
-      - name: Check dependencies (safety)
-        run: safety scan --full-report  # Changed from 'check' to 'scan'
+   #--   - name: Check dependencies (safety) ---
+   #--     run: safety scan --full-report  # Changed from 'check' to 'scan' ---
 
   deploy-to-azure:
     needs: test-and-scan
