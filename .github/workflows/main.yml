@@ -31,6 +31,17 @@ jobs:
       - name: Check dependencies (safety)
         run: safety check --full-report
 
+      - name: Install dependencies
+        run: |
+              pip install -r requirements.txt
+              pip install gunicorn
+
+      - name: Collect static files
+        run: python manage.py collectstatic --noinput
+
+      - name: Run migrations
+        run: python manage.py migrate
+
   deploy-to-azure:
     needs: test-and-scan
     runs-on: ubuntu-latest
