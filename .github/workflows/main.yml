@@ -1,4 +1,4 @@
-name: Django DevSecOps Pipeline
+name: Django_DevSecOps_Pipeline
 
 on:
   push:
