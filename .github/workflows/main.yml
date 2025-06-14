@@ -36,9 +36,6 @@ jobs:
               pip install -r requirements.txt
               pip install gunicorn
 
-  
-      - name: Run migrations
-        run: python manage.py migrate
 
   deploy-to-azure:
     needs: test-and-scan
