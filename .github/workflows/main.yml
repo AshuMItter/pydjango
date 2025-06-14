@@ -28,7 +28,7 @@ jobs:
         run: bandit -r . --severity-level high
 
       # --- SCA: Safety ---
-      - name: Check dependencies (safety)
+      - name: Scan dependencies (safety)
         run: safety check --full-report
 
   deploy-to-azure:
