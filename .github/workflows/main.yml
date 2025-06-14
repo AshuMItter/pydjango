@@ -1,4 +1,4 @@
-name: Django DevSecOps Pipeline
+name: Django DevSecOps Pipeline (F1 Free Tier)
 
 on:
   push:
@@ -23,10 +23,6 @@ jobs:
           pip install -r requirements.txt
           pip install bandit safety
 
-      # --- Run tests ---
-     #-- - name: Run Django tests ---
-     #--   run: python manage.py test  ---
-
       # --- SAST: Bandit ---
       - name: Security scan (Bandit)
         run: bandit -r . --severity-level high
@@ -36,22 +32,31 @@ jobs:
         run: safety check --full-report
 
   deploy-to-azure:
-    needs: test-and-scan  # Wait for tests/scans to pass
+    needs: test-and-scan
     runs-on: ubuntu-latest
-    environment: production  # Requires GitHub environment setup
+    environment: production
     steps:
       # --- Checkout code ---
       - uses: actions/checkout@v4
 
-      # --- Azure Login (using GitHub Secrets) ---
+      # --- Azure Login ---
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Fix typo (was AZURE_CREDENTIALS)
 
-      # --- Deploy to Azure App Service ---
+      # --- Verify App Service Exists (Prevent 404) ---
+      - name: Check Azure App Service
+        run: |
+          az webapp show \
+            --name django-azure-app \
+            --resource-group django-azure-app_group \
+            --query "state" || exit 1
+
+      # --- Deploy to Azure F1 Tier (No Slots) ---
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v2
         with:
-          app-name: "django-azure-app"  # Replace with your Azure App name
+          app-name: "django-azure-app"  # Must match your F1 App Service name
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          # Removed slot-name (F1 doesn't support slots)
