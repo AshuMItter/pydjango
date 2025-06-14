@@ -25,7 +25,7 @@ jobs:
 
       # --- SAST: Bandit ---
       - name: Security scan (Bandit)
-        run: bandit -r . --severity-level high
+        run: bandit -r . --severity-level low
 
       # --- SCA: Safety ---
       - name: Check dependencies (safety)
