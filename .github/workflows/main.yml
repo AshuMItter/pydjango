@@ -20,14 +20,7 @@ jobs:
           
     
 
-      # --- Create Deployment Artifact ---
-      - name: Create deployment package
-        run: |
-          mkdir -p deploy_package
-          cp -r . deploy_package/
-          cd deploy_package
-          echo "python-version=3.10" > runtime.txt
-          echo "SCM_DO_BUILD_DURING_DEPLOYMENT=true" > .env
+      
 
 
       - name: Install dependencies
@@ -52,6 +45,16 @@ jobs:
     steps:
       # --- Checkout code ---
       - uses: actions/checkout@v4
+
+
+# --- Create Deployment Artifact ---
+      - name: Create deployment package
+        run: |
+          mkdir -p deploy_package
+          cp -r . deploy_package/
+          cd deploy_package
+          echo "python-version=3.10" > runtime.txt
+          echo "SCM_DO_BUILD_DURING_DEPLOYMENT=true" > .env
       
       # --- Azure Login ---
       - name: Azure Login
